@@ -5,34 +5,36 @@ import Keys._
 import java.io.InputStreamReader
 import io.Source
 import org.mozilla.javascript.{ScriptableObject, ContextFactory, Context, Function => JsFunction}
+import org.mozilla.javascript.tools.shell.Main
 
 
 object SbtJshintPlugin extends Plugin {
 
 
   //lazy val distPath = SettingKey[File]("jshint-options", "Path to file containing the jshint options")
-  lazy val jsFiles = SettingKey[PathFinder]("jsFiles", "the files to run jshint against")
+  lazy val jshintFiles = SettingKey[PathFinder]("jshintFiles", "the files to run jshint against")
   lazy val jshint = TaskKey[String]("jshint", "Run jshint code analysis")
 
-  def jshintTask = (jsFiles, streams) map { (files, s) =>
+  def jshintTask = (jshintFiles, streams) map { (files, s) =>
     s.log.info("running jshint...")
 
     val jscontext = ContextFactory.getGlobal.enterContext()
-    val scope = jscontext.initStandardObjects
+    val scope = Main.getGlobal
 
-    scope.defineFunctionProperties(Array("print"), JsCallbacks.getClass, ScriptableObject.DONTENUM)
+    scope.init(jscontext)
 
     jscontext.evaluateReader(scope, bundledScript("jshint.js"), "jshint.js", 1, null)
     jscontext.evaluateReader(scope, bundledScript("defaultOptions.js"), "defaultOptions.js", 1, null)
     jscontext.evaluateReader(scope, bundledScript("getErrors.js"), "getErrors.js", 1, null)
 
-    files.get.map { jsfile =>
+    val errorCount = files.get.map { jsfile =>
       s.log.info("checking " + jsfile.getName)
       val getErrorFunc = scope.get("getErrors", scope).asInstanceOf[JsFunction]
-      val foo = getErrorFunc.call(jscontext, scope, scope, Array(readFile(jsfile)))
-      s.log.info("result was:" + foo)
-    }
+      val errorsInfile = getErrorFunc.call(jscontext, scope, scope, Array(readFile(jsfile)))
+      errorsInfile.asInstanceOf[Double]
+    }.sum
 
+    if (errorCount > 0) throw new JshintFailedException(errorCount.toInt)
     "complete"
   }
 
@@ -57,7 +59,4 @@ object SbtJshintPlugin extends Plugin {
   )
 }
 
-object JsCallbacks {
-
-  def print(msg: String) { println(msg) }
-}
+class JshintFailedException(count: Int) extends Exception("JSHINT validation failed with " + count + " errors")
