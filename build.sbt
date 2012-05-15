@@ -4,7 +4,9 @@ name := "sbt-jshint-plugin"
 
 organization := "com.gu"
 
-version := "0.1"
+version := "0.1.1"
+
+libraryDependencies += "org.mozilla" % "rhino" % "1.7R3"
 
 // don't bother publishing javadoc
 publishArtifact in (Compile, packageDoc) := false

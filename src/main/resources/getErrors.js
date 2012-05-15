@@ -1,6 +1,6 @@
 function getErrors(input) {
-    if (!JSHINT("alert('foo');", JSLINT_OPTIONS)) {
-       // print(input)
+    if (!JSHINT(input, JSLINT_OPTIONS)) {
+      //  print(input)
         for (var errorIndex = 0; errorIndex < JSHINT.errors.length; errorIndex++) {
             var error = JSHINT.errors[errorIndex];
             if (error != null) {
@@ -10,6 +10,5 @@ function getErrors(input) {
         }
         return JSHINT.errors.length;
     }
-
     return 0;
 };
