@@ -5,7 +5,7 @@ import Keys._
 import java.io.InputStreamReader
 import io.Source
 import org.mozilla.javascript.{ScriptableObject, ContextFactory, Context, Function => JsFunction}
-import org.mozilla.javascript.tools.shell.Main
+import org.mozilla.javascript.tools.shell.{Global, Main}
 
 
 object SbtJshintPlugin extends Plugin {
@@ -18,8 +18,8 @@ object SbtJshintPlugin extends Plugin {
   def jshintTask = (jshintFiles, streams) map { (files, s) =>
     s.log.info("running jshint...")
 
-    val jscontext = ContextFactory.getGlobal.enterContext()
-    val scope = Main.getGlobal
+    val jscontext =  new ContextFactory().enterContext()
+    val scope = new Global()
 
     scope.init(jscontext)
 
@@ -35,6 +35,7 @@ object SbtJshintPlugin extends Plugin {
     }.sum
 
     if (errorCount > 0) throw new JshintFailedException(errorCount.toInt)
+
     "complete"
   }
 
