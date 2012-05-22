@@ -14,9 +14,10 @@ object SbtJshintPlugin extends Plugin {
 
   //lazy val distPath = SettingKey[File]("jshint-options", "Path to file containing the jshint options")
   lazy val jshintFiles = SettingKey[Seq[PathFinder]]("jshintFiles", "the files to run jshint against")
+  lazy val jshintMercy = SettingKey[Int]("jshintMercy", "the number of errors allowed before the jshint task fails")
   lazy val jshint = TaskKey[Unit]("jshint", "Run jshint code analysis")
 
-  def jshintTask = (jshintFiles, streams) map { (optFiles, s) =>
+  def jshintTask = (jshintFiles, jshintMercy, streams) map { (optFiles, mercy, s) =>
     optFiles.foreach { files =>
       s.log.info("running jshint...")
 
@@ -35,7 +36,7 @@ object SbtJshintPlugin extends Plugin {
         errorsInfile.asInstanceOf[Double]
       }.sum
 
-      if (errorCount > 0) throw new JshintFailedException(errorCount.toInt)
+      if (errorCount > mercy) throw new JshintFailedException(errorCount.toInt)
 
     }
   }
@@ -58,8 +59,8 @@ object SbtJshintPlugin extends Plugin {
 
   val jshintSettings: Seq[Project.Setting[_]] = Seq(
     jshint <<= jshintTask,
-    parallelExecution in jshint := false,
-    jshintFiles := Seq()
+    jshintFiles := Seq(),
+    jshintMercy := 0
   )
 }
 
