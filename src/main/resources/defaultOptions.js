@@ -1,5 +1,3 @@
-var JSHINT_MERCY = 0;      // permit a error threshold
- 
 var JSLINT_OPTIONS = {
         // Settings
     "passfail"      : false,  // Stop on first error.

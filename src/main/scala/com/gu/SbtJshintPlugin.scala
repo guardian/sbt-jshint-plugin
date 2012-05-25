@@ -24,14 +24,11 @@ object SbtJshintPlugin extends Plugin {
 
       val jscontext =  new ContextFactory().enterContext()
       val scope = new Global()
-
       scope.init(jscontext)
 
       jscontext.evaluateReader(scope, bundledScript("jshint.js"), "jshint.js", 1, null)
 
-      val optionsFile = optFiles.headOption
-
-      optionsFile match {
+      optFiles.headOption match {
         case Some(f) => jscontext.evaluateString(scope, readFile(f), f.getName, 1, null)
         case _ => jscontext.evaluateReader(scope, bundledScript("defaultOptions.js"), "defaultOptions.js", 1, null)
       }
@@ -58,7 +55,6 @@ object SbtJshintPlugin extends Plugin {
   }
 
   def readFile(file: File) = {
-
     val source = Source.fromFile(file, "UTF-8")
     val contents = source.mkString
     source.close
